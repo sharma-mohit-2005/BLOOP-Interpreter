@@ -1,0 +1,23 @@
+# Compiled class files
+out/
+
+# JAR files
+*.jar
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Extracted/temp files
+extracted_pdf.txt
+
+# Assignment PDF
+*.pdf

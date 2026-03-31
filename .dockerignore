@@ -1,0 +1,7 @@
+out/
+bloop.jar
+extracted_pdf.txt
+*.pdf
+.git
+.gitignore
+BLOOP_Interpreter_Documentation.html

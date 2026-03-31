@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BLOOP Interpreter — Project Documentation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --accent: #7c3aed;
+            --bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --code-bg: #f8fafc;
+            --table-header: #f1f5f9;
+            --highlight: #dbeafe;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 11pt;
+            background: var(--bg);
+            padding: 0;
+        }
+
+        @page {
+            margin: 2cm 2.5cm;
+            size: A4;
+        }
+
+        @media print {
+            body { font-size: 10pt; }
+            .page-break { page-break-before: always; }
+            .no-break { page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+            h3 { page-break-after: avoid; }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        /* ── Cover Page ────────────────────────── */
+        .cover {
+            text-align: center;
+            padding: 120px 40px 80px;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cover h1 {
+            font-size: 36pt;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .cover .subtitle {
+            font-size: 16pt;
+            color: var(--text-light);
+            font-weight: 300;
+            margin-bottom: 40px;
+        }
+
+        .cover .course {
+            font-size: 13pt;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .cover .university {
+            font-size: 12pt;
+            color: var(--text-light);
+            margin-bottom: 40px;
+        }
+
+        .cover .meta {
+            font-size: 10pt;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        /* ── Headings ──────────────────────────── */
+        h2 {
+            font-size: 18pt;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 36px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        h3 {
+            font-size: 13pt;
+            font-weight: 600;
+            color: var(--text);
+            margin: 24px 0 10px;
+        }
+
+        h4 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 18px 0 8px;
+        }
+
+        /* ── Text ──────────────────────────────── */
+        p {
+            margin: 8px 0;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 8px 0 8px 24px;
+        }
+
+        li { margin: 4px 0; }
+
+        strong { font-weight: 600; }
+
+        /* ── Code ──────────────────────────────── */
+        code {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 9.5pt;
+            background: var(--code-bg);
+            padding: 1px 5px;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 9pt;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* ── Tables ────────────────────────────── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 10pt;
+        }
+
+        th {
+            background: var(--table-header);
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+        }
+
+        td {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) { background: #fafbfc; }
+
+        /* ── Callout Boxes ─────────────────────── */
+        .callout {
+            border-left: 4px solid var(--primary-light);
+            background: var(--highlight);
+            padding: 12px 16px;
+            margin: 14px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .callout.concept {
+            border-left-color: var(--accent);
+            background: #f3e8ff;
+        }
+
+        .callout p { margin: 4px 0; }
+
+        .callout strong { color: var(--primary); }
+        .callout.concept strong { color: var(--accent); }
+
+        /* ── Flow Diagram ──────────────────────── */
+        .flow-diagram {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--code-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .flow-diagram .box {
+            display: inline-block;
+            padding: 10px 18px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 10pt;
+            color: var(--primary);
+            background: white;
+            margin: 4px;
+        }
+
+        .flow-diagram .arrow {
+            display: inline-block;
+            font-size: 16pt;
+            color: var(--text-light);
+            margin: 0 6px;
+            vertical-align: middle;
+        }
+
+        .flow-diagram .label {
+            display: block;
+            font-size: 8pt;
+            color: var(--text-light);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        /* ── TOC ───────────────────────────────── */
+        .toc {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px 28px;
+            margin: 20px 0;
+        }
+
+        .toc h3 { margin-top: 0; color: var(--primary); }
+
+        .toc ol {
+            margin: 10px 0 0 20px;
+        }
+
+        .toc li {
+            margin: 6px 0;
+            color: var(--text);
+        }
+
+        .toc li a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* ── File Header ───────────────────────── */
+        .file-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px 6px 0 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9pt;
+            font-weight: 500;
+        }
+
+        .file-header + pre {
+            border-radius: 0 0 6px 6px;
+            margin-top: 0;
+        }
+
+        /* ── Footer ────────────────────────────── */
+        .footer {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 9pt;
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  COVER PAGE                                -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="cover">
+    <h1>BLOOP Interpreter</h1>
+    <div class="subtitle">Build Your Own Mini Scripting Engine</div>
+    <div class="course">Advanced Object-Oriented Programming in Java</div>
+    <div class="university">Sitare University</div>
+    <div class="meta">
+        <p><strong>Language:</strong> BLOOP (Beginner-Level Object-Oriented Program)</p>
+        <p><strong>Technology:</strong> Pure Java (No external libraries)</p>
+        <p><strong>Concepts:</strong> Generics · Dependency Injection · Functional Programming</p>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  TABLE OF CONTENTS                         -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="toc">
+    <h3>Table of Contents</h3>
+    <ol>
+        <li>Introduction & Project Overview</li>
+        <li>Architecture & Interpreter Pipeline</li>
+        <li>Project Structure</li>
+        <li>Class-by-Class Explanation
+            <ol type="a">
+                <li>Token Layer — <code>TokenType</code>, <code>Token</code></li>
+                <li>Expression Layer — <code>Expression</code>, <code>NumberNode</code>, <code>StringNode</code>, <code>VariableNode</code>, <code>BinaryOpNode</code></li>
+                <li>Runtime Layer — <code>Environment</code>, <code>OutputHandler</code></li>
+                <li>Instruction Layer — <code>Instruction</code>, <code>AssignInstruction</code>, <code>PrintInstruction</code>, <code>IfInstruction</code>, <code>RepeatInstruction</code></li>
+                <li>Lexer — <code>Tokenizer</code></li>
+                <li>Parser — <code>Parser</code></li>
+                <li>Engine & Pipeline — <code>ExecutionEngine</code>, <code>BloopExecutionEngine</code>, <code>InterpreterPipeline</code></li>
+                <li>Entry Points — <code>Interpreter</code>, <code>Main</code></li>
+            </ol>
+        </li>
+        <li>Advanced OOP Concepts Applied
+            <ol type="a">
+                <li>Generics</li>
+                <li>Dependency Injection</li>
+                <li>Functional Programming</li>
+            </ol>
+        </li>
+        <li>Step-by-Step Execution Walkthrough</li>
+        <li>Sample Programs & Test Results</li>
+        <li>How to Compile and Run</li>
+    </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  1. INTRODUCTION                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>1. Introduction & Project Overview</h2>
+
+<p>This project implements a complete interpreter for <strong>BLOOP</strong> (Beginner-Level Object-Oriented Program) — a small, made-up programming language that reads almost like plain English sentences. The interpreter is written entirely in pure Java with no external libraries.</p>
+
+<p>When a user writes code in BLOOP and runs it through our interpreter, the program reads the source code, understands its structure, and executes it to produce real output on screen.</p>
+
+<h3>What BLOOP Looks Like</h3>
+<pre><code>put 10 into x              -- assignment: store 10 in variable x
+put 3 into y               -- assignment: store 3 in variable y
+put x + y * 2 into result  -- arithmetic with operator precedence
+print result               -- output: prints 16
+
+if score > 50 then:        -- conditional block
+    print "Pass"
+
+repeat 4 times:            -- loop block
+    print i
+    put i + 1 into i</code></pre>
+
+<h3>Key Features</h3>
+<ul>
+    <li><strong>Variables</strong> — store and retrieve numbers and strings</li>
+    <li><strong>Arithmetic</strong> — addition, subtraction, multiplication, division with correct operator precedence</li>
+    <li><strong>String output</strong> — print literal strings and string variables</li>
+    <li><strong>Conditionals</strong> — if-then blocks with comparison operators (&gt;, &lt;, ==)</li>
+    <li><strong>Loops</strong> — repeat blocks that run a fixed number of times</li>
+    <li><strong>Error handling</strong> — helpful runtime error messages with line numbers</li>
+</ul>
+
+<h3>BLOOP Keywords</h3>
+<table>
+    <tr><th>Keyword</th><th>Purpose</th><th>Example</th></tr>
+    <tr><td><code>put</code></td><td>Start of assignment</td><td><code>put 10 into x</code></td></tr>
+    <tr><td><code>into</code></td><td>Assignment target</td><td><code>put 10 into x</code></td></tr>
+    <tr><td><code>print</code></td><td>Output a value</td><td><code>print x</code></td></tr>
+    <tr><td><code>if</code></td><td>Start conditional</td><td><code>if x &gt; 5 then:</code></td></tr>
+    <tr><td><code>then</code></td><td>End of condition</td><td><code>if x &gt; 5 then:</code></td></tr>
+    <tr><td><code>repeat</code></td><td>Start loop</td><td><code>repeat 4 times:</code></td></tr>
+    <tr><td><code>times</code></td><td>Loop count</td><td><code>repeat 4 times:</code></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  2. ARCHITECTURE                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>2. Architecture & Interpreter Pipeline</h2>
+
+<p>The interpreter works as a <strong>three-stage pipeline</strong>. Each stage takes the output of the previous one and hands its result to the next.</p>
+
+<div class="flow-diagram">
+    <div class="box">
+        Source Code
+        <span class="label">(.bloop file)</span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="box">
+        Stage 1: Tokenizer
+        <span class="label">String → List&lt;Token&gt;</span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="box">
+        Stage 2: Parser
+        <span class="label">List&lt;Token&gt; → List&lt;Instruction&gt;</span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="box">
+        Stage 3: Executor
+        <span class="label">List&lt;Instruction&gt; → Output</span>
+    </div>
+</div>
+
+<h3>Stage 1 — Tokenizer (Lexical Analysis)</h3>
+<p>The Tokenizer reads the raw source code as a single <code>String</code> and breaks it into a flat list of labelled pieces called <strong>tokens</strong> — like splitting a sentence into individual words. Each token carries its type (keyword, number, operator, etc.), its raw text, and the line number where it appeared.</p>
+
+<div class="callout">
+    <p><strong>Example:</strong> The source line <code>put 10 into x</code> becomes:</p>
+    <p><code>[PUT("put"), NUMBER("10"), INTO("into"), IDENTIFIER("x"), NEWLINE]</code></p>
+</div>
+
+<h3>Stage 2 — Parser (Syntactic Analysis)</h3>
+<p>The Parser reads the token list and builds a structured tree of objects that captures the meaning of the program, including the correct order of operations for arithmetic. It produces a <code>List&lt;Instruction&gt;</code>, where each instruction represents one complete action.</p>
+
+<div class="callout">
+    <p><strong>Example:</strong> The tokens from <code>put x + y * 2 into result</code> become:</p>
+    <p><code>AssignInstruction("result", BinaryOpNode(VariableNode("x"), "+", BinaryOpNode(VariableNode("y"), "*", NumberNode(2))))</code></p>
+</div>
+
+<h3>Stage 3 — Executor (Evaluation)</h3>
+<p>The Executor walks through the instruction list and executes each instruction. It uses an <code>Environment</code> object to store variables, and an <code>OutputHandler</code> to produce output. Each instruction can read variables, write variables, and produce output.</p>
+
+<h3>Why a Tree?</h3>
+<p>Arithmetic has structure. In the expression <code>x + y * 2</code>, multiplication must happen before addition. A flat list of tokens cannot capture this — but a tree can. The multiply node sits deeper in the tree than the add node, so it gets evaluated first:</p>
+
+<pre><code>        Add  (+)
+       /    \
+      x    Multiply  (*)
+            /    \
+           y      2</code></pre>
+
+<p>When we evaluate this tree from the bottom up: first <code>y * 2 = 6</code>, then <code>x + 6 = 16</code>. The tree shape handles operator precedence automatically.</p>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  3. PROJECT STRUCTURE                      -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>3. Project Structure</h2>
+
+<p>The project is organised into <strong>8 packages</strong> with <strong>20 Java source files</strong>, each package having a clear responsibility:</p>
+
+<pre><code>src/com/bloop/
+├── token/                          ── Token Layer ──
+│   ├── TokenType.java              Enum of all token kinds
+│   └── Token.java                  Immutable token object
+│
+├── expression/                     ── Expression Layer ──
+│   ├── Expression.java             @FunctionalInterface for evaluation
+│   ├── NumberNode.java             Literal number (e.g., 42)
+│   ├── StringNode.java             Literal string (e.g., "hello")
+│   ├── VariableNode.java           Variable reference (e.g., x)
+│   └── BinaryOpNode.java           Binary operation (e.g., x + y)
+│
+├── runtime/                        ── Runtime Layer ──
+│   ├── Environment.java            Variable store: Map&lt;String, Object&gt;
+│   └── OutputHandler.java          @FunctionalInterface for output (DI)
+│
+├── instruction/                    ── Instruction Layer ──
+│   ├── Instruction.java            @FunctionalInterface for execution
+│   ├── AssignInstruction.java      put &lt;expr&gt; into &lt;var&gt;
+│   ├── PrintInstruction.java       print &lt;expr&gt; (uses injected OutputHandler)
+│   ├── IfInstruction.java          if &lt;cond&gt; then: &lt;body&gt;
+│   └── RepeatInstruction.java      repeat &lt;n&gt; times: &lt;body&gt;
+│
+├── lexer/                          ── Lexer ──
+│   └── Tokenizer.java              Character-by-character tokenizer
+│
+├── parser/                         ── Parser ──
+│   └── Parser.java                 Recursive descent parser
+│
+├── engine/                         ── Execution Engine ──
+│   ├── ExecutionEngine.java        DI interface for execution
+│   └── BloopExecutionEngine.java   Concrete engine using Stream API
+│
+├── pipeline/                       ── Functional Pipeline ──
+│   └── InterpreterPipeline.java    Function.andThen() composition
+│
+├── Interpreter.java                Main interpreter (DI constructor)
+└── Main.java                       CLI entry point (composition root)
+
+tests/
+├── program1.bloop                  Arithmetic & variables
+├── program2.bloop                  String output
+├── program3.bloop                  Conditional (if-then)
+└── program4.bloop                  Loop (repeat-times)</code></pre>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  4. CLASS-BY-CLASS EXPLANATION              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>4. Class-by-Class Explanation</h2>
+
+<!-- ── 4a. Token Layer ──────────────────────── -->
+<h3>4a. Token Layer</h3>
+
+<h4>TokenType.java — Enum</h4>
+<p>An enum listing every kind of token the BLOOP language can produce. It has 21 entries organized into five categories:</p>
+<table>
+    <tr><th>Category</th><th>Token Types</th></tr>
+    <tr><td>Literals</td><td><code>NUMBER</code>, <code>STRING</code>, <code>IDENTIFIER</code></td></tr>
+    <tr><td>Keywords</td><td><code>PUT</code>, <code>INTO</code>, <code>PRINT</code>, <code>IF</code>, <code>THEN</code>, <code>REPEAT</code>, <code>TIMES</code></td></tr>
+    <tr><td>Arithmetic</td><td><code>PLUS</code>, <code>MINUS</code>, <code>STAR</code>, <code>SLASH</code></td></tr>
+    <tr><td>Comparison</td><td><code>GREATER</code>, <code>LESS</code>, <code>EQUALS_EQUALS</code></td></tr>
+    <tr><td>Structural</td><td><code>COLON</code>, <code>NEWLINE</code>, <code>INDENT</code>, <code>EOF</code></td></tr>
+</table>
+
+<h4>Token.java — Immutable Data Class</h4>
+<p>Represents one piece of source code. Each Token stores three pieces of information, all set in the constructor and never changed (immutability):</p>
+<ul>
+    <li><code>TokenType type</code> — what kind of token (from the enum)</li>
+    <li><code>String value</code> — the raw text from the source (e.g., <code>"10"</code>, <code>"put"</code>)</li>
+    <li><code>int line</code> — line number for error reporting</li>
+</ul>
+<p>Only getters are provided — no setters. This ensures tokens cannot be accidentally modified after creation.</p>
+
+<div class="file-header">Token.java — Key Code</div>
+<pre><code>public class Token {
+    private final TokenType type;   // immutable
+    private final String value;     // immutable
+    private final int line;         // immutable
+
+    public Token(TokenType type, String value, int line) {
+        this.type = type;
+        this.value = value;
+        this.line = line;
+    }
+
+    public TokenType getType() { return type; }   // getter, no setter
+    public String getValue()   { return value; }
+    public int getLine()       { return line; }
+}</code></pre>
+
+<!-- ── 4b. Expression Layer ─────────────────── -->
+<div class="page-break"></div>
+<h3>4b. Expression Layer</h3>
+
+<p>Every expression in BLOOP — a number, a variable name, a calculation — is represented as a node object. All node classes implement the <code>Expression</code> interface, forming a class hierarchy through <strong>polymorphism</strong>.</p>
+
+<h4>Expression.java — @FunctionalInterface</h4>
+<p>The base interface with a single abstract method <code>evaluate(Environment env)</code>. It is marked <code>@FunctionalInterface</code>, which means it can be implemented using lambda expressions — a key <strong>functional programming</strong> concept.</p>
+
+<div class="file-header">Expression.java</div>
+<pre><code>@FunctionalInterface
+public interface Expression {
+    Object evaluate(Environment env);
+    // Returns Double for numbers, String for text
+}</code></pre>
+
+<div class="callout concept">
+    <p><strong>Functional Programming:</strong> Because Expression is a <code>@FunctionalInterface</code>, you can create expressions inline: <code>Expression fortyTwo = env -&gt; 42.0;</code></p>
+</div>
+
+<h4>NumberNode.java — Literal Number</h4>
+<p>Stores a <code>double</code> value (e.g., <code>42</code> or <code>3.14</code>). When <code>evaluate()</code> is called, it simply returns the stored number. The Environment is ignored since literal numbers are constant.</p>
+
+<h4>StringNode.java — Literal String</h4>
+<p>Stores a <code>String</code> value (e.g., <code>"hello"</code>). When <code>evaluate()</code> is called, it returns the stored string. Like NumberNode, it ignores the Environment.</p>
+
+<h4>VariableNode.java — Variable Reference</h4>
+<p>Stores the variable name (e.g., <code>"x"</code>). When <code>evaluate()</code> is called, it looks up the variable's current value in the Environment. If the variable hasn't been defined, the Environment throws a <code>RuntimeException</code>.</p>
+
+<h4>BinaryOpNode.java — Binary Operation</h4>
+<p>The most complex expression node. It stores three things: a <strong>left expression</strong>, an <strong>operator symbol</strong> ("+", "-", "*", "/", ">", "<", "=="), and a <strong>right expression</strong>.</p>
+
+<div class="callout concept">
+    <p><strong>Functional Programming — BiFunction Operator Map:</strong> Instead of a long if-else chain, BinaryOpNode uses a <code>Map&lt;String, BiFunction&lt;Double, Double, Object&gt;&gt;</code> to store operators as lambdas. This demonstrates <strong>generics</strong>, <strong>lambdas</strong>, and makes adding new operators trivial.</p>
+</div>
+
+<div class="file-header">BinaryOpNode.java — Operator Map (Key Design)</div>
+<pre><code>// Generics: Map&lt;String, BiFunction&lt;Double, Double, Object&gt;&gt;
+private static final Map&lt;String, BiFunction&lt;Double, Double, Object&gt;&gt; OPERATORS = Map.of(
+    "+",  (a, b) -&gt; a + b,          // lambda: addition
+    "-",  (a, b) -&gt; a - b,          // lambda: subtraction
+    "*",  (a, b) -&gt; a * b,          // lambda: multiplication
+    "/",  (a, b) -&gt; a / b,          // lambda: division
+    "&gt;",  (a, b) -&gt; a &gt; b,          // lambda: greater than → Boolean
+    "&lt;",  (a, b) -&gt; a &lt; b,          // lambda: less than → Boolean
+    "==", (a, b) -&gt; a.equals(b)     // lambda: equality → Boolean
+);
+
+@Override
+public Object evaluate(Environment env) {
+    Object leftVal = left.evaluate(env);
+    Object rightVal = right.evaluate(env);
+    // Look up the operator function and apply it
+    BiFunction&lt;Double, Double, Object&gt; operation = OPERATORS.get(operator);
+    return operation.apply((Double) leftVal, (Double) rightVal);
+}</code></pre>
+
+
+<!-- ── 4c. Runtime Layer ────────────────────── -->
+<div class="page-break"></div>
+<h3>4c. Runtime Layer</h3>
+
+<h4>Environment.java — Variable Store</h4>
+<p>The Environment is a simple mapping from variable names to their current values. Every instruction in the program shares one Environment instance during execution, allowing variables set by one instruction to be read by later ones.</p>
+
+<div class="callout">
+    <p><strong>Generics:</strong> Uses <code>Map&lt;String, Object&gt;</code> — the <code>String</code> key ensures type-safe variable names, while the <code>Object</code> value type allows storing both <code>Double</code> (numbers) and <code>String</code> (text) polymorphically.</p>
+</div>
+
+<div class="file-header">Environment.java</div>
+<pre><code>public class Environment {
+    // Generics: Map&lt;String, Object&gt;
+    private final Map&lt;String, Object&gt; variables = new HashMap&lt;&gt;();
+
+    public void set(String name, Object value) {
+        variables.put(name, value);  // store or update
+    }
+
+    public Object get(String name) {
+        if (!variables.containsKey(name)) {
+            throw new RuntimeException("Variable not defined: " + name);
+        }
+        return variables.get(name);
+    }
+}</code></pre>
+
+<h4>OutputHandler.java — Functional Interface for Output (DI)</h4>
+<p>A <code>@FunctionalInterface</code> with a single method <code>print(String output)</code>. This enables <strong>dependency injection</strong>: instead of instructions calling <code>System.out.println()</code> directly, they receive an OutputHandler. This decouples the output mechanism from the logic.</p>
+
+<div class="file-header">OutputHandler.java</div>
+<pre><code>@FunctionalInterface
+public interface OutputHandler {
+    void print(String output);
+}
+
+// Usage with method reference (functional programming):
+OutputHandler handler = System.out::println;  // production
+OutputHandler testHandler = list::add;        // testing</code></pre>
+
+<div class="callout concept">
+    <p><strong>Dependency Injection:</strong> By injecting OutputHandler, we can swap <code>System.out::println</code> (production) for a list-capturing handler (testing) without changing any instruction code.</p>
+</div>
+
+
+<!-- ── 4d. Instruction Layer ────────────────── -->
+<div class="page-break"></div>
+<h3>4d. Instruction Layer</h3>
+
+<p>An instruction is one complete action BLOOP can perform. All instruction classes implement the <code>Instruction</code> interface through <strong>polymorphism</strong>.</p>
+
+<h4>Instruction.java — @FunctionalInterface</h4>
+<pre><code>@FunctionalInterface
+public interface Instruction {
+    void execute(Environment env);
+}</code></pre>
+
+<h4>AssignInstruction.java</h4>
+<p>Handles <code>put &lt;expression&gt; into &lt;variable&gt;</code>. Stores the variable name and the expression. When executed, it evaluates the expression and stores the result in the Environment.</p>
+<pre><code>// put 10 + 5 into x  →  AssignInstruction("x", BinaryOpNode(10, "+", 5))
+@Override
+public void execute(Environment env) {
+    Object value = expression.evaluate(env);  // evaluate: 10 + 5 = 15.0
+    env.set(variableName, value);             // store: x = 15.0
+}</code></pre>
+
+<h4>PrintInstruction.java</h4>
+<p>Handles <code>print &lt;expression&gt;</code>. Uses <strong>dependency injection</strong> — receives an <code>OutputHandler</code> via constructor. Numbers like <code>16.0</code> are formatted as <code>"16"</code> (without decimal point) for clean output.</p>
+<pre><code>// DI: OutputHandler injected via constructor
+public PrintInstruction(Expression expression, OutputHandler outputHandler) { ... }
+
+@Override
+public void execute(Environment env) {
+    Object value = expression.evaluate(env);
+    String output = formatOutput(value);  // 16.0 → "16"
+    outputHandler.print(output);          // DI: uses injected handler
+}</code></pre>
+
+<h4>IfInstruction.java</h4>
+<p>Handles <code>if &lt;condition&gt; then: &lt;body&gt;</code>. Stores a condition expression and a <code>List&lt;Instruction&gt;</code> body (<strong>generics</strong>). When executed, evaluates the condition — if it's <code>true</code>, executes every instruction in the body.</p>
+<pre><code>// Generics: List&lt;Instruction&gt; for the body
+private final List&lt;Instruction&gt; body;
+
+@Override
+public void execute(Environment env) {
+    Object result = condition.evaluate(env);       // e.g., 85 > 50 → true
+    if (result instanceof Boolean &amp;&amp; (Boolean) result) {
+        for (Instruction instruction : body) {
+            instruction.execute(env);               // run body instructions
+        }
+    }
+}</code></pre>
+
+<h4>RepeatInstruction.java</h4>
+<p>Handles <code>repeat &lt;n&gt; times: &lt;body&gt;</code>. Stores the repeat count and a <code>List&lt;Instruction&gt;</code> body. Executes all body instructions <code>count</code> times.</p>
+<pre><code>@Override
+public void execute(Environment env) {
+    for (int i = 0; i &lt; count; i++) {
+        for (Instruction instruction : body) {
+            instruction.execute(env);  // run body instructions each iteration
+        }
+    }
+}</code></pre>
+
+
+<!-- ── 4e. Lexer ────────────────────────────── -->
+<div class="page-break"></div>
+<h3>4e. Tokenizer (Lexer)</h3>
+
+<p>The Tokenizer reads raw source code as a <code>String</code> and produces a <code>List&lt;Token&gt;</code>. It walks through characters one at a time, recognising patterns and emitting a Token for each one.</p>
+
+<h4>How Tokenization Works</h4>
+<ol>
+    <li><strong>Newlines</strong> — emit <code>NEWLINE</code> token, increment line counter</li>
+    <li><strong>Indentation</strong> — at line start, spaces/tabs emit <code>INDENT</code> token (used for block detection)</li>
+    <li><strong>Numbers</strong> — sequences of digits and <code>'.'</code> → <code>NUMBER</code> token</li>
+    <li><strong>Strings</strong> — text between <code>"..."</code> → <code>STRING</code> token (quotes are stripped)</li>
+    <li><strong>Words</strong> — alphabetic sequences are checked against a keyword map; if found → keyword token, otherwise → <code>IDENTIFIER</code></li>
+    <li><strong>Operators</strong> — single characters like <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>&gt;</code>, <code>&lt;</code>, <code>:</code> → operator tokens</li>
+    <li><strong>EOF</strong> — appended at the end of the token list</li>
+</ol>
+
+<div class="callout">
+    <p><strong>Generics:</strong> <code>Map&lt;String, TokenType&gt;</code> is used for keyword lookup — a type-safe mapping from keyword text to its corresponding enum value.</p>
+</div>
+
+<div class="file-header">Tokenizer.java — Keyword Map</div>
+<pre><code>// Generics: Map&lt;String, TokenType&gt; for keyword lookup
+private static final Map&lt;String, TokenType&gt; KEYWORDS = Map.of(
+    "put",    TokenType.PUT,
+    "into",   TokenType.INTO,
+    "print",  TokenType.PRINT,
+    "if",     TokenType.IF,
+    "then",   TokenType.THEN,
+    "repeat", TokenType.REPEAT,
+    "times",  TokenType.TIMES
+);
+
+private Token readWord() {
+    // Read the word, then look up in the KEYWORDS map
+    TokenType type = KEYWORDS.getOrDefault(word, TokenType.IDENTIFIER);
+    return new Token(type, word, line);
+}</code></pre>
+
+<h4>Example Tokenization</h4>
+<p>Source line: <code>put x + y * 2 into result</code></p>
+<table>
+    <tr><th>#</th><th>Type</th><th>Value</th><th>Line</th></tr>
+    <tr><td>1</td><td>PUT</td><td>"put"</td><td>3</td></tr>
+    <tr><td>2</td><td>IDENTIFIER</td><td>"x"</td><td>3</td></tr>
+    <tr><td>3</td><td>PLUS</td><td>"+"</td><td>3</td></tr>
+    <tr><td>4</td><td>IDENTIFIER</td><td>"y"</td><td>3</td></tr>
+    <tr><td>5</td><td>STAR</td><td>"*"</td><td>3</td></tr>
+    <tr><td>6</td><td>NUMBER</td><td>"2"</td><td>3</td></tr>
+    <tr><td>7</td><td>INTO</td><td>"into"</td><td>3</td></tr>
+    <tr><td>8</td><td>IDENTIFIER</td><td>"result"</td><td>3</td></tr>
+    <tr><td>9</td><td>NEWLINE</td><td>"\n"</td><td>3</td></tr>
+</table>
+
+
+<!-- ── 4f. Parser ───────────────────────────── -->
+<div class="page-break"></div>
+<h3>4f. Parser (Recursive Descent)</h3>
+
+<p>The Parser reads the <code>List&lt;Token&gt;</code> and builds a <code>List&lt;Instruction&gt;</code>. It uses the <strong>recursive descent</strong> technique, where each grammar rule maps to a method that may call other methods recursively.</p>
+
+<h4>BLOOP Grammar</h4>
+<pre><code>program     → instruction*
+instruction → assignment | printStmt | ifStmt | repeatStmt
+assignment  → PUT expression INTO IDENTIFIER NEWLINE
+printStmt   → PRINT expression NEWLINE
+ifStmt      → IF condition THEN COLON NEWLINE block
+repeatStmt  → REPEAT NUMBER TIMES COLON NEWLINE block
+block       → (INDENT instruction)+
+condition   → expression ( &gt; | &lt; | == ) expression
+expression  → term ( ( + | - ) term )*
+term        → primary ( ( * | / ) primary )*
+primary     → NUMBER | STRING | IDENTIFIER</code></pre>
+
+<h4>Operator Precedence via Recursive Descent</h4>
+<p>The parser handles operator precedence through a three-level call chain:</p>
+
+<table>
+    <tr><th>Method</th><th>Handles</th><th>Precedence</th><th>Calls</th></tr>
+    <tr><td><code>parseExpression()</code></td><td><code>+</code> and <code>-</code></td><td>Lowest</td><td>→ parseTerm()</td></tr>
+    <tr><td><code>parseTerm()</code></td><td><code>*</code> and <code>/</code></td><td>Higher</td><td>→ parsePrimary()</td></tr>
+    <tr><td><code>parsePrimary()</code></td><td>Numbers, strings, variables</td><td>Highest (atoms)</td><td>—</td></tr>
+</table>
+
+<p>This chain gives <code>*</code> and <code>/</code> higher priority than <code>+</code> and <code>-</code> automatically because <code>parseTerm()</code> binds its operands before <code>parseExpression()</code> sees them.</p>
+
+<h4>Instruction Dispatch</h4>
+<p>The <code>parseInstruction()</code> method looks at the current token and dispatches to the appropriate method:</p>
+<pre><code>private Instruction parseInstruction() {
+    Token token = peek();
+    switch (token.getType()) {
+        case PUT:    return parseAssignment();  // put &lt;expr&gt; into &lt;var&gt;
+        case PRINT:  return parsePrint();       // print &lt;expr&gt;
+        case IF:     return parseIf();          // if &lt;cond&gt; then: &lt;body&gt;
+        case REPEAT: return parseRepeat();      // repeat &lt;n&gt; times: &lt;body&gt;
+        default:     throw new RuntimeException("Unexpected token...");
+    }
+}</code></pre>
+
+<h4>Block Parsing</h4>
+<p>Blocks (indented code after <code>then:</code> or <code>times:</code>) are parsed by looking for <code>INDENT</code> tokens. Lines with indentation belong to the block; the first non-indented line ends it.</p>
+
+<div class="callout concept">
+    <p><strong>Dependency Injection:</strong> The Parser receives an <code>OutputHandler</code> in its constructor and injects it into every <code>PrintInstruction</code> it creates. This ensures output handling is configurable without modifying the instruction classes.</p>
+</div>
+
+
+<!-- ── 4g. Engine & Pipeline ────────────────── -->
+<div class="page-break"></div>
+<h3>4g. Engine & Pipeline</h3>
+
+<h4>ExecutionEngine.java — DI Interface</h4>
+<p>An interface with method <code>execute(List&lt;Instruction&gt;, Environment)</code>. This is the <strong>dependency injection</strong> abstraction point — the Interpreter depends on this interface rather than a concrete class, allowing different execution strategies to be swapped in.</p>
+
+<h4>BloopExecutionEngine.java — Concrete Implementation</h4>
+<p>The standard execution engine that runs instructions sequentially using the <strong>Stream API</strong>:</p>
+<pre><code>@Override
+public void execute(List&lt;Instruction&gt; instructions, Environment env) {
+    // Functional programming: Stream API with lambda
+    instructions.stream().forEach(instruction -&gt; instruction.execute(env));
+}</code></pre>
+
+<h4>InterpreterPipeline.java — Function Composition</h4>
+<p>Demonstrates <strong>Function.andThen()</strong> composition — chaining the tokenize and parse stages into a single function:</p>
+
+<div class="file-header">InterpreterPipeline.java — Function Composition</div>
+<pre><code>// Generics: Function&lt;InputType, OutputType&gt; for each stage
+private final Function&lt;String, List&lt;Token&gt;&gt; tokenizer;
+private final Function&lt;List&lt;Token&gt;, List&lt;Instruction&gt;&gt; parser;
+private final Consumer&lt;List&lt;Instruction&gt;&gt; executor;
+
+public void run(String sourceCode) {
+    // Functional programming: Function.andThen() chains stages
+    Function&lt;String, List&lt;Instruction&gt;&gt; tokenizeAndParse =
+        tokenizer.andThen(parser);
+
+    List&lt;Instruction&gt; instructions = tokenizeAndParse.apply(sourceCode);
+    executor.accept(instructions);
+}</code></pre>
+
+<div class="callout concept">
+    <p><strong>Function Composition:</strong> <code>tokenizer.andThen(parser)</code> creates a new function that first tokenizes the source code, then feeds the token list directly to the parser — a core functional programming pattern.</p>
+</div>
+
+
+<!-- ── 4h. Entry Points ─────────────────────── -->
+<h3>4h. Entry Points</h3>
+
+<h4>Interpreter.java — Constructor Injection</h4>
+<p>The main interpreter class. All dependencies are injected via the constructor (DI pattern): it receives an <code>OutputHandler</code> and an <code>ExecutionEngine</code>. It never creates its own dependencies — they're provided from outside.</p>
+
+<div class="file-header">Interpreter.java — DI Constructor</div>
+<pre><code>public class Interpreter {
+    private final OutputHandler outputHandler;      // DI: injected
+    private final ExecutionEngine executionEngine;   // DI: injected
+
+    // Constructor Injection — dependencies provided externally
+    public Interpreter(OutputHandler outputHandler, ExecutionEngine engine) {
+        this.outputHandler = outputHandler;
+        this.executionEngine = engine;
+    }
+
+    public void run(String sourceCode) {
+        Environment env = new Environment();
+
+        // Functional: wrap stages as Function&lt;&gt; objects
+        Function&lt;String, List&lt;Token&gt;&gt; tokenize = source -&gt;
+            new Tokenizer(source).tokenize();
+
+        Function&lt;List&lt;Token&gt;, List&lt;Instruction&gt;&gt; parse = tokens -&gt;
+            new Parser(tokens, outputHandler).parse();  // DI: pass handler
+
+        Consumer&lt;List&lt;Instruction&gt;&gt; execute = instructions -&gt;
+            executionEngine.execute(instructions, env);
+
+        // Compose and run the pipeline
+        new InterpreterPipeline(tokenize, parse, execute).run(sourceCode);
+    }
+}</code></pre>
+
+<h4>Main.java — Composition Root</h4>
+<p>The CLI entry point and <strong>composition root</strong> — the single place where all dependencies are created and wired together:</p>
+<pre><code>public static void main(String[] args) {
+    String sourceCode = Files.readString(Paths.get(args[0]));
+
+    // ── DI WIRING ──────────────────────────
+    OutputHandler outputHandler = System.out::println;  // method reference
+    ExecutionEngine engine = new BloopExecutionEngine();
+    Interpreter interpreter = new Interpreter(outputHandler, engine); // inject
+
+    interpreter.run(sourceCode);
+}</code></pre>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  5. ADVANCED OOP CONCEPTS                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>5. Advanced OOP Concepts Applied</h2>
+
+<h3>5a. Generics</h3>
+<p>Generics provide type safety while allowing flexible, reusable code. They are used extensively throughout the project:</p>
+
+<table>
+    <tr><th>Where</th><th>Generic Type</th><th>Purpose</th></tr>
+    <tr><td>Environment</td><td><code>Map&lt;String, Object&gt;</code></td><td>Type-safe variable store with heterogeneous values</td></tr>
+    <tr><td>Tokenizer</td><td><code>Map&lt;String, TokenType&gt;</code></td><td>Keyword lookup map</td></tr>
+    <tr><td>BinaryOpNode</td><td><code>Map&lt;String, BiFunction&lt;Double, Double, Object&gt;&gt;</code></td><td>Operator dispatch with generic function types</td></tr>
+    <tr><td>Tokenizer output</td><td><code>List&lt;Token&gt;</code></td><td>Type-safe token collection</td></tr>
+    <tr><td>Parser output</td><td><code>List&lt;Instruction&gt;</code></td><td>Type-safe instruction collection</td></tr>
+    <tr><td>IfInstruction body</td><td><code>List&lt;Instruction&gt;</code></td><td>Generic collection of body instructions</td></tr>
+    <tr><td>Pipeline stages</td><td><code>Function&lt;String, List&lt;Token&gt;&gt;</code></td><td>Generic function types for composition</td></tr>
+</table>
+
+<h3>5b. Dependency Injection (DI)</h3>
+<p>Dependency Injection means a class receives its dependencies from outside rather than creating them internally. This follows the principle "Don't call us, we'll call you" (Inversion of Control).</p>
+
+<table>
+    <tr><th>Class</th><th>Injected Dependency</th><th>Benefit</th></tr>
+    <tr><td>Interpreter</td><td>OutputHandler, ExecutionEngine</td><td>Swappable output and execution strategies</td></tr>
+    <tr><td>PrintInstruction</td><td>OutputHandler</td><td>Testable output without System.out coupling</td></tr>
+    <tr><td>Parser</td><td>OutputHandler</td><td>Injects into PrintInstructions during construction</td></tr>
+    <tr><td>InterpreterPipeline</td><td>3 Function stages</td><td>Fully configurable pipeline</td></tr>
+    <tr><td>Main.java</td><td>—</td><td>Composition root: creates and wires all dependencies</td></tr>
+</table>
+
+<h3>5c. Functional Programming</h3>
+<table>
+    <tr><th>Concept</th><th>Where Used</th><th>Example</th></tr>
+    <tr><td><code>@FunctionalInterface</code></td><td>Expression, Instruction, OutputHandler</td><td>Single abstract method interfaces</td></tr>
+    <tr><td>Lambda expressions</td><td>BinaryOpNode operators</td><td><code>(a, b) -&gt; a + b</code></td></tr>
+    <tr><td>Method references</td><td>Main.java</td><td><code>System.out::println</code></td></tr>
+    <tr><td><code>BiFunction&lt;&gt;</code></td><td>BinaryOpNode</td><td><code>BiFunction&lt;Double, Double, Object&gt;</code></td></tr>
+    <tr><td><code>Function.andThen()</code></td><td>InterpreterPipeline</td><td><code>tokenizer.andThen(parser)</code></td></tr>
+    <tr><td>Stream API</td><td>BloopExecutionEngine</td><td><code>instructions.stream().forEach()</code></td></tr>
+    <tr><td><code>Consumer&lt;&gt;</code></td><td>InterpreterPipeline</td><td><code>Consumer&lt;List&lt;Instruction&gt;&gt;</code></td></tr>
+</table>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  6. STEP-BY-STEP WALKTHROUGH               -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>6. Step-by-Step Execution Walkthrough</h2>
+
+<p>Let us trace what happens when the interpreter runs this BLOOP program:</p>
+<pre><code>put 10 into x
+put 3 into y
+put x + y * 2 into result
+print result</code></pre>
+
+<h3>Step 1 — Main.java reads the file</h3>
+<p><code>Main.main()</code> reads <code>program1.bloop</code> into a String, creates the DI wiring (<code>OutputHandler = System.out::println</code>, <code>ExecutionEngine = new BloopExecutionEngine()</code>), and calls <code>interpreter.run(sourceCode)</code>.</p>
+
+<h3>Step 2 — Tokenizer produces tokens</h3>
+<p>The Tokenizer walks through the source character by character and produces:</p>
+<pre><code>Line 1: [PUT, NUMBER("10"), INTO, IDENTIFIER("x"), NEWLINE]
+Line 2: [PUT, NUMBER("3"), INTO, IDENTIFIER("y"), NEWLINE]
+Line 3: [PUT, IDENTIFIER("x"), PLUS, IDENTIFIER("y"), STAR, NUMBER("2"), INTO, IDENTIFIER("result"), NEWLINE]
+Line 4: [PRINT, IDENTIFIER("result"), NEWLINE, EOF]</code></pre>
+
+<h3>Step 3 — Parser builds instructions</h3>
+<p>The Parser reads the tokens and constructs four instructions:</p>
+<pre><code>1. AssignInstruction("x", NumberNode(10.0))
+2. AssignInstruction("y", NumberNode(3.0))
+3. AssignInstruction("result", BinaryOpNode(
+       VariableNode("x"), "+",
+       BinaryOpNode(VariableNode("y"), "*", NumberNode(2.0))
+   ))
+4. PrintInstruction(VariableNode("result"))</code></pre>
+
+<p>Note how <code>y * 2</code> is nested deeper than <code>x + ...</code> in instruction 3 — this is how the tree structure ensures multiplication happens first.</p>
+
+<h3>Step 4 — Executor runs instructions</h3>
+<table>
+    <tr><th>Instruction</th><th>Action</th><th>Environment After</th></tr>
+    <tr><td>1. AssignInstruction("x", 10.0)</td><td>Evaluate NumberNode(10.0) → 10.0; store x = 10.0</td><td>{x: 10.0}</td></tr>
+    <tr><td>2. AssignInstruction("y", 3.0)</td><td>Evaluate NumberNode(3.0) → 3.0; store y = 3.0</td><td>{x: 10.0, y: 3.0}</td></tr>
+    <tr><td>3. AssignInstruction("result", ...)</td><td>Evaluate tree: y*2 = 6.0, then x+6.0 = 16.0; store result = 16.0</td><td>{x: 10.0, y: 3.0, result: 16.0}</td></tr>
+    <tr><td>4. PrintInstruction("result")</td><td>Evaluate VariableNode("result") → 16.0; format as "16"; print</td><td>Output: <strong>16</strong></td></tr>
+</table>
+
+<h3>Expression Tree Evaluation (Instruction 3 in Detail)</h3>
+<pre><code>       BinaryOpNode("+")
+       /              \
+VariableNode("x")   BinaryOpNode("*")
+      |               /           \
+  env.get("x")  VariableNode("y")  NumberNode(2.0)
+      |               |               |
+    10.0          env.get("y")       2.0
+                      |
+                     3.0
+
+Evaluation (bottom-up):
+  1. VariableNode("y").evaluate() → 3.0
+  2. NumberNode(2.0).evaluate()   → 2.0
+  3. BinaryOpNode("*").evaluate() → 3.0 * 2.0 = 6.0
+  4. VariableNode("x").evaluate() → 10.0
+  5. BinaryOpNode("+").evaluate() → 10.0 + 6.0 = 16.0</code></pre>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  7. SAMPLE PROGRAMS & TEST RESULTS         -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>7. Sample Programs & Test Results</h2>
+
+<h3>Program 1 — Arithmetic and Variables</h3>
+<div class="no-break">
+<pre><code>put 10 into x
+put 3 into y
+put x + y * 2 into result
+print result</code></pre>
+<p><strong>Expected Output:</strong> <code>16</code> &nbsp;&nbsp; <strong>Actual Output:</strong> <code>16</code> &nbsp;&nbsp; ✅ <strong>PASS</strong></p>
+</div>
+
+<h3>Program 2 — String Output</h3>
+<div class="no-break">
+<pre><code>put "Sitare" into name
+print name
+print "Hello from BLOOP"</code></pre>
+<p><strong>Expected Output:</strong></p>
+<pre><code>Sitare
+Hello from BLOOP</code></pre>
+<p><strong>Actual Output:</strong> Same as expected &nbsp;&nbsp; ✅ <strong>PASS</strong></p>
+</div>
+
+<h3>Program 3 — Conditional</h3>
+<div class="no-break">
+<pre><code>put 85 into score
+if score > 50 then:
+    print "Pass"</code></pre>
+<p><strong>Expected Output:</strong> <code>Pass</code> &nbsp;&nbsp; <strong>Actual Output:</strong> <code>Pass</code> &nbsp;&nbsp; ✅ <strong>PASS</strong></p>
+</div>
+
+<h3>Program 4 — Loop</h3>
+<div class="no-break">
+<pre><code>put 1 into i
+repeat 4 times:
+    print i
+    put i + 1 into i</code></pre>
+<p><strong>Expected Output:</strong></p>
+<pre><code>1
+2
+3
+4</code></pre>
+<p><strong>Actual Output:</strong> Same as expected &nbsp;&nbsp; ✅ <strong>PASS</strong></p>
+</div>
+
+<div class="callout">
+    <p><strong>All 4 test programs produce the correct output.</strong> The interpreter correctly handles arithmetic with operator precedence, string operations, conditionals with comparison operators, and loops with variable mutations.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  8. HOW TO COMPILE AND RUN                 -->
+<!-- ═══════════════════════════════════════════ -->
+<h2>8. How to Compile and Run</h2>
+
+<h3>Prerequisites</h3>
+<ul>
+    <li>Java Development Kit (JDK) 11 or higher</li>
+</ul>
+
+<h3>Compile</h3>
+<pre><code>javac -d out -sourcepath src src/com/bloop/Main.java</code></pre>
+<p>This compiles all Java files and places the <code>.class</code> files in the <code>out/</code> directory.</p>
+<ul>
+    <li><code>-d out</code> — output directory for compiled classes</li>
+    <li><code>-sourcepath src</code> — tells javac where to find source files</li>
+</ul>
+
+<h3>Run a Program</h3>
+<pre><code>java -cp out com.bloop.Main tests/program1.bloop</code></pre>
+<ul>
+    <li><code>-cp out</code> — classpath: tells Java where to find compiled <code>.class</code> files</li>
+    <li><code>com.bloop.Main</code> — fully qualified class name to run</li>
+    <li><code>tests/program1.bloop</code> — path to the source file (passed as <code>args[0]</code>)</li>
+</ul>
+
+<h3>Run All Test Programs</h3>
+<pre><code>java -cp out com.bloop.Main tests/program1.bloop   # Output: 16
+java -cp out com.bloop.Main tests/program2.bloop   # Output: Sitare / Hello from BLOOP
+java -cp out com.bloop.Main tests/program3.bloop   # Output: Pass
+java -cp out com.bloop.Main tests/program4.bloop   # Output: 1, 2, 3, 4</code></pre>
+
+
+<div class="footer">
+    <p>BLOOP Interpreter — Advanced OOP in Java — Project Documentation</p>
+    <p>Sitare University | Advanced Object-Oriented Programming</p>
+</div>
+
+</div>
+</body>
+</html>
